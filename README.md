@@ -57,4 +57,22 @@ channel, irreversibly.
 - There is no read-state API. "Notifications" is approximated by a time window plus a local
   checkpoint (with 30 min overlap and id-based dedup), never by Slack's actual unreads.
 
+## Tests
+
+```bash
+./run-tests.sh      # 39 offline unit tests; never touch Slack
+/slack-selftest     # live canary against Slack's actual search behaviour
+```
+
+The offline suite covers reply routing (mention → in-thread, DM → unthreaded, thread →
+parent ts), the refusals that matter (`sent` skipped, empty skipped, orphan reported
+rather than guessed at), body fidelity, and the window/TTL logic.
+
+`/slack-selftest` is the one that guards the caveats above. The quoted-mention trick and
+`to:me`'s DM-only behaviour live in Slack's remote service, not in this repo, so they
+cannot be unit tested — but their failure mode is an empty result set, which is
+indistinguishable from a quiet day. The canary runs the real queries against known
+fixture messages and fails loudly, naming the fallback to switch to. Its assertion logic
+*is* unit tested, against synthetic output simulating each way the behaviour could break.
+
 Full empirical notes: `docs/spike-findings.md`. Design: `PLAN.md`.

@@ -1,0 +1,15 @@
+{
+  "_comment": "Known-good fixture messages in the App-testing workspace. The live canary (/slack-selftest) asserts Slack still behaves this way. If these messages are deleted or the workspace is torn down, the canary reports UNKNOWN rather than passing silently.",
+  "workspace": "apptesting-9pl4296",
+  "me": "U0C2Y3CB0BX",
+  "partner": "U0C2Y8980GM",
+  "channel_general": "C0C34U44VDF",
+  "dm_with_partner": "D0C2WUB3HNF",
+  "messages": {
+    "mention_by_partner": "1789840108.623459",
+    "mention_by_self": "1789838204.036969",
+    "control_no_mention": "1789838206.196009",
+    "dm_from_partner": "1789840123.332649",
+    "thread_parent": "1789838208.234999"
+  }
+}
