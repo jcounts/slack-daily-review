@@ -1,0 +1,11 @@
+{
+  "name": "slack-daily-review",
+  "description": "A daily Slack catch-up that writes to a file you can reply in: mentions and DMs verbatim, threads summarized, replies typed inline and posted back.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jordan Counts"
+  },
+  "homepage": "https://github.com/jcounts/slack-daily-review",
+  "repository": "https://github.com/jcounts/slack-daily-review",
+  "license": "MIT"
+}

@@ -18,7 +18,7 @@ usually an empty one, which looks exactly like a quiet day. That is the failure 
 this checker exists to make loud.
 
 Scripts cannot call MCP tools, so this does not talk to Slack. The model runs the live
-queries (see /slack-selftest) and hands the raw output here as an evidence file.
+queries (see /slack-daily-review:slack-selftest) and hands the raw output here as an evidence file.
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ def extract_ts(blob: str) -> set[str]:
 CHECKS = [
     ("mention_query_finds_partner_mention", "mentions", "contains", "mention_by_partner", FAIL,
      "The quoted-phrase mention trick has STOPPED WORKING. `keywords: ['\"<@ME>\"']` no "
-     "longer matches a known mention. /slack-review will report quiet days that are not "
+     "longer matches a known mention. /slack-daily-review:slack-review will report quiet days that are not "
      "quiet. Switch to the per-channel fallback: slack_list_user_channels + "
      "slack_read_channel(oldest=...) filtered locally for '<@ME'."),
 
@@ -142,7 +142,7 @@ def main() -> int:
 
     statuses = {r["status"] for r in results}
     if FAIL in statuses:
-        print("\nCONTRACT BROKEN -- /slack-review cannot be trusted until this is fixed.",
+        print("\nCONTRACT BROKEN -- /slack-daily-review:slack-review cannot be trusted until this is fixed.",
               file=sys.stderr)
         return 1
     if CHANGED in statuses:

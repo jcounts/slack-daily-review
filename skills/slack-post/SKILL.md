@@ -1,16 +1,20 @@
 ---
 description: Post the replies drafted in INBOX.md back to Slack, after confirmation
+disable-model-invocation: true
 ---
 
-Send the replies I typed into `INBOX.md`. Arguments: $ARGUMENTS
+Send the replies I typed into the inbox file. Arguments: $ARGUMENTS
 (`--dry-run` = show what would be sent and stop; `--draft` = create Slack drafts
 instead of sending.)
 
 ## 1. Parse
 
 ```
-python3 scripts/inbox_parse.py
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/inbox_parse.py"
 ```
+
+The script resolves the inbox path itself (default `~/.slack-daily-review/INBOX.md`, or
+`$SLACK_DAILY_REVIEW_HOME`). Do not pass `--inbox` unless I ask for a specific file.
 
 Exit code 2 means malformed blocks. **Report the `problems` list and stop** — do not send
 a partial batch when the file is inconsistent. An orphan reply (no matching item anchor)
@@ -56,8 +60,8 @@ in Slack. Do not mark those as sent — they have not been.
 ## 4. Record — after each successful send
 
 ```
-python3 scripts/inbox_write.py mark-sent --id <id> --ts <returned message_ts> --permalink <returned link>
-printf '%s\t%s\t%s\t%s\n' "$(date -Is)" "<id>" "<channel>" "<permalink>" >> state/posted.log
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/inbox_write.py" mark-sent --id <id> --ts <returned message_ts> --permalink <returned link>
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/slack_state.py" posted-log --id <id> --channel <channel> --permalink <returned link>
 ```
 
 Mark each one immediately after its own send, not in a batch at the end — if the run dies
@@ -68,7 +72,7 @@ If a send fails, leave that block as `draft`, report the error, and continue wit
 Then register replied-to threads so follow-ups get picked up next review:
 
 ```
-python3 scripts/slack_state.py thread-seen --channel <channel> --thread-ts <thread_ts> --last-seen <returned ts>
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/slack_state.py" thread-seen --channel <channel> --thread-ts <thread_ts> --last-seen <returned ts>
 ```
 
 ## 5. Report

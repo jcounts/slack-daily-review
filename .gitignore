@@ -92,11 +92,11 @@ tmp/
 # (e.g. `reviews/` or `output/`).
 
 # ---- slack-daily-review runtime ----
-# Local run state: machine-specific, and posted.log is a local audit trail.
+# Runtime data now lives outside the repo (~/.slack-daily-review, or
+# $SLACK_DAILY_REVIEW_HOME) so a plugin update cannot delete it. These two entries
+# cover leftovers from before that move, and any local run that points
+# SLACK_DAILY_REVIEW_HOME back at this directory. INBOX.md holds VERBATIM Slack
+# content including private DMs -- committing it would put colleagues' messages
+# into version control.
 state/
-
-# The inbox holds VERBATIM Slack content, including private DMs. Not committed by
-# default -- committing it would put colleagues' messages into version control.
-# If you want a tracked history of your inbox, delete the line below and commit
-# deliberately, knowing what lands in the repo.
 INBOX.md

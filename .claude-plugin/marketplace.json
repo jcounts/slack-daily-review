@@ -1,0 +1,14 @@
+{
+  "name": "slack-daily-review",
+  "owner": {
+    "name": "Jordan Counts"
+  },
+  "plugins": [
+    {
+      "name": "slack-daily-review",
+      "source": "./",
+      "description": "A daily Slack catch-up that writes to a file you can reply in: mentions and DMs verbatim, threads summarized, replies typed inline and posted back."
+    }
+  ],
+  "description": "Daily Slack catch-up for Claude Code: mentions and DMs verbatim in a file you reply in."
+}

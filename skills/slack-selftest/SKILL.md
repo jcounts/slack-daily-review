@@ -1,18 +1,20 @@
 ---
 description: Verify Slack's search still behaves the way slack-daily-review depends on
+disable-model-invocation: true
 ---
 
 Check the undocumented Slack behaviours this tool rests on. Run this when
-`/slack-review` reports a suspiciously quiet day, or periodically as a canary.
+`/slack-daily-review:slack-review` reports a suspiciously quiet day, or periodically as a
+canary.
 
 Requires the `App-testing` workspace with its fixture messages intact
-(`tests/fixtures/workspace_contract.json` lists the expected message timestamps).
-Read that file first for `me`, `partner`, and the fixture ids.
+(`${CLAUDE_PLUGIN_ROOT}/tests/fixtures/workspace_contract.json` lists the expected message
+timestamps). Read that file first for `me`, `partner`, and the fixture ids.
 
 ## 1. Offline tests
 
 ```
-./run-tests.sh
+"${CLAUDE_PLUGIN_ROOT}/run-tests.sh"
 ```
 
 These cover the parser, routing and state logic. If they fail, stop — the local code is
@@ -44,7 +46,7 @@ Write the three raw blobs into a JSON evidence file in your scratchpad:
 ```
 
 ```
-python3 scripts/check_slack_contract.py --evidence <file>
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_slack_contract.py" --evidence <file>
 ```
 
 ## 4. Report
@@ -52,8 +54,8 @@ python3 scripts/check_slack_contract.py --evidence <file>
 Exit codes: `0` all good · `1` **contract broken** · `2` behaviour changed but not broken
 · `3` incomplete evidence.
 
-- **On 1**, say plainly that `/slack-review` cannot be trusted until it is fixed, and
-  quote the checker's explanation — it names the fallback to switch to.
+- **On 1**, say plainly that `/slack-daily-review:slack-review` cannot be trusted until it
+  is fixed, and quote the checker's explanation — it names the fallback to switch to.
 - **On 2**, report what changed. A `to:me` that starts matching channel mentions would
   be an improvement, but it double-reports until the design is revisited.
 - **On 3**, do not report success. Say which probe produced no evidence.

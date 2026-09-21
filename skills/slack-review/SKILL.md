@@ -1,12 +1,19 @@
 ---
 description: Collect Slack mentions, DMs and thread updates since the last review into INBOX.md
+disable-model-invocation: true
 ---
 
-Build today's Slack review and prepend it to `INBOX.md`.
+Build today's Slack review and prepend it to the inbox file.
 
 ## 0. Setup
 
-Run `python3 scripts/slack_state.py window` and use `since_ts` / `since_date` below.
+Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/slack_state.py" window` and use `since_ts` /
+`since_date` below.
+
+The inbox and checkpoint live outside the plugin (default `~/.slack-daily-review/`, or
+`$SLACK_DAILY_REVIEW_HOME`); the scripts resolve that themselves. Never construct those
+paths by hand — a plugin update replaces this directory, so anything written inside it is
+lost.
 
 Get **my own user id** from any `slack_search_*` tool description — they state
 "Current logged in user's user_id is `U...`". Call it `<ME>`. Never hardcode it; it
@@ -57,8 +64,9 @@ Discover threads I'm in:
 slack_search_public_and_private(filters: "is:thread from:me", keywords: [], include_context: false)
 ```
 
-Merge with `python3 scripts/slack_state.py thread-list`, plus the `thread_ts` of any
-mention from step 1 that sits in a thread (a reply's permalink carries `?thread_ts=`).
+Merge with `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/slack_state.py" thread-list`, plus the
+`thread_ts` of any mention from step 1 that sits in a thread (a reply's permalink carries
+`?thread_ts=`).
 
 For each thread, fetch only the delta:
 
@@ -75,7 +83,7 @@ Skip threads with no new replies. For the rest, write a short summary of **what 
 and **what is being asked of me** — not a message-by-message transcript. Then record it:
 
 ```
-python3 scripts/slack_state.py thread-seen --channel C... --thread-ts ... \
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/slack_state.py" thread-seen --channel C... --thread-ts ... \
   --last-seen <newest reply ts> --title "..."
 ```
 
@@ -85,7 +93,7 @@ The window overlaps by 30 minutes on purpose, so a run will re-collect items the
 run already wrote. Before rendering:
 
 ```
-python3 scripts/inbox_parse.py --existing-ids
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/inbox_parse.py" --existing-ids
 ```
 
 Compute each collected item's id (`m-`/`d-`/`t-` + channel + ts, as below) and **discard
@@ -125,13 +133,14 @@ Write the new section to a temp file in the scratchpad, then insert it. Format p
 ## 5. Commit
 
 ```
-python3 scripts/inbox_write.py insert --content-file <tmp file>
-python3 scripts/slack_state.py commit
-python3 scripts/slack_state.py thread-prune
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/inbox_write.py" insert --content-file <tmp file>
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/slack_state.py" commit
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/slack_state.py" thread-prune
 ```
 
 Commit **only after** the insert succeeds — a failed write must not advance the
 checkpoint, or that window's messages are lost silently.
 
-Finish with a one-line count (`3 mentions, 1 DM, 2 threads`) and nothing else. Do not
-paste the review into the terminal; the file is the deliverable.
+Finish with a one-line count (`3 mentions, 1 DM, 2 threads`) followed by the inbox path
+that `inbox_write.py` printed, so I know which file to open. Nothing else. Do not paste
+the review into the terminal; the file is the deliverable.

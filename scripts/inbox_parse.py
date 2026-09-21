@@ -13,8 +13,9 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_INBOX = ROOT / "INBOX.md"
+from paths import inbox_path
+
+DEFAULT_INBOX = inbox_path()
 
 ITEM_RE = re.compile(r"<!--\s*item\s+(?P<attrs>[^>]*?)-->")
 REPLY_RE = re.compile(
@@ -97,7 +98,7 @@ def main() -> int:
     p.add_argument("--inbox", type=Path, default=DEFAULT_INBOX)
     p.add_argument("--existing-ids", action="store_true",
                    help="print the item ids already in the file, one per line, and exit. "
-                        "Used by /slack-review to skip items it has already recorded, "
+                        "Used by /slack-daily-review:slack-review to skip items it has already recorded, "
                         "since the collection window deliberately overlaps.")
     args = p.parse_args()
 

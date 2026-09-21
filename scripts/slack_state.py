@@ -13,8 +13,9 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-STATE_PATH = ROOT / "state" / "checkpoint.json"
+from paths import posted_log_path, state_path
+
+STATE_PATH = state_path()
 
 FIRST_RUN_LOOKBACK = 24 * 3600   # how far back to look when there is no checkpoint
 OVERLAP = 30 * 60                # re-scan this much before last_run; search indexing
@@ -98,6 +99,21 @@ def cmd_thread_seen(args) -> None:
     print(f"thread {args.channel}:{args.thread_ts} last_seen={rec.get('last_seen_ts')}")
 
 
+def cmd_posted_log(args) -> None:
+    """Append one line to the local audit trail of what was actually sent.
+
+    Slack has no "did I send this from here" query, so this file is the only
+    record that survives a failed run or a re-read of the inbox.
+    """
+    path = posted_log_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+    line = "\t".join([stamp, args.id, args.channel, args.permalink or ""])
+    with path.open("a") as fh:
+        fh.write(line + "\n")
+    print(f"logged {args.id} -> {path}")
+
+
 def cmd_thread_prune(args) -> None:
     state = load()
     now = time.time()
@@ -130,6 +146,12 @@ def main() -> int:
     t.set_defaults(func=cmd_thread_seen)
 
     sub.add_parser("thread-prune", help="drop threads idle past the TTL").set_defaults(func=cmd_thread_prune)
+
+    g = sub.add_parser("posted-log", help="append a sent reply to the audit trail")
+    g.add_argument("--id", required=True)
+    g.add_argument("--channel", required=True)
+    g.add_argument("--permalink", default=None)
+    g.set_defaults(func=cmd_posted_log)
 
     args = p.parse_args()
     args.func(args)

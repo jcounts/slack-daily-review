@@ -11,8 +11,9 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_INBOX = ROOT / "INBOX.md"
+from paths import inbox_path
+
+DEFAULT_INBOX = inbox_path()
 
 FEED_START = "<!-- feed:start -->"
 LAST_REVIEW_RE = re.compile(r"^_Last review: .*_$", re.MULTILINE)
@@ -23,7 +24,8 @@ SKELETON = f"""# Slack Inbox
 
 _Last review: never_
 
-Type replies between the `reply` markers under any item, then run `/slack-post`.
+Type replies between the `reply` markers under any item, then run
+`/slack-daily-review:slack-post`.
 An empty reply block is skipped. Sent replies are marked `status=sent` and will not
 be sent again.
 

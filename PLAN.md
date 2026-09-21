@@ -27,7 +27,7 @@ Every design question was settled empirically against a live two-account workspa
 |---|---|
 | Slack access | Official plugin → `mcp.slack.com` (OAuth, no custom app) |
 | Thread scope | Mentioned in **+** participated in |
-| Trigger | Manual: `/slack-review` and `/slack-post` |
+| Trigger | Manual: `/slack-daily-review:slack-review` and `:slack-post` |
 | File layout | Single rolling `INBOX.md` |
 | Identity | `U0C2Y3CB0BX`, resolved at runtime, not hardcoded |
 
@@ -43,21 +43,41 @@ That's the whole read path. No per-channel sweep.
 
 ## Architecture
 
+Shipped as a Claude Code plugin, so code and user data are separate trees.
+
+The plugin (replaced wholesale on every update — nothing durable may live here):
+
 ```
 slack-daily-review/
-├── INBOX.md                  # the one file I read and type replies into
-├── state/
-│   ├── checkpoint.json       # last_run_ts, per-thread last_seen_ts
-│   └── posted.log            # append-only audit of everything sent
+├── .claude-plugin/
+│   ├── plugin.json           # manifest; `name` sets the /slack-daily-review: prefix
+│   └── marketplace.json      # lets the repo be installed directly from GitHub
+├── skills/
+│   ├── slack-review/SKILL.md
+│   ├── slack-post/SKILL.md
+│   └── slack-selftest/SKILL.md
 ├── scripts/
+│   ├── paths.py              # resolves the user-data dir, below
 │   ├── slack_state.py        # window calc, checkpoint, thread registry
 │   ├── inbox_parse.py        # INBOX.md -> pending replies JSON
 │   └── inbox_write.py        # insert sections, mark replies sent
-├── .claude/commands/
-│   ├── slack-review.md       # /slack-review
-│   └── slack-post.md         # /slack-post
 └── docs/spike-findings.md
 ```
+
+User data (`$SLACK_DAILY_REVIEW_HOME`, else `~/.slack-daily-review/`):
+
+```
+~/.slack-daily-review/
+├── INBOX.md                  # the one file I read and type replies into
+└── state/
+    ├── checkpoint.json       # last_run_ts, per-thread last_seen_ts
+    └── posted.log            # append-only audit of everything sent
+```
+
+The split is not cosmetic. A plugin update replaces the install directory, and the
+checkpoint is the only record of what has already been reviewed — it cannot be
+reconstructed from Slack. Skills reference bundled files as `"${CLAUDE_PLUGIN_ROOT}/..."`;
+everything durable goes through `paths.py`.
 
 **Division of labor.** Scripts cannot call MCP tools — only the model can. So all Slack
 I/O is model-driven, and scripts own exactly the deterministic local work: time windows,
